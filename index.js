@@ -1,11 +1,13 @@
+import { error } from "console";
 import fs from "fs";
 
 class ProductManager {
   
     constructor (PATH, products = []){
+
         this.products = products
-        this.PATH = PATH
-        
+        this.PATH = PATH  
+
     }
     
     addProduct = async (title, description, price, thumbnail, code, stock) => {
@@ -51,6 +53,7 @@ class ProductManager {
     }
     
     getProductById = async (id) => {
+    
         let productsData =  JSON.parse(await fs.promises.readFile(this.PATH, "utf-8"))
         let productFinded = await productsData.find((prod) => prod.id === id )
 
@@ -62,48 +65,59 @@ class ProductManager {
     }
 
     updateProduct = async (id, campo, valor) => {
-        let data = await fs.promises.readFile(this.PATH, "utf-8")
+
+        let isIdValid = this.products.some(prod => prod.id === id)
+
+        if (isIdValid) {
+
+            let productToUpdate = this.products.find((prod) => prod.id === id)
         
-        let products = JSON.parse(data)
+            let productToUpdateKeys = Object.keys(productToUpdate)
 
-        let productToUpdate = products.find((prod) => prod.id === id)
-        
-        let productToUpdateKeys = Object.keys(productToUpdate)
-
-
-        if (productToUpdateKeys.includes(campo)){
-
-          productToUpdate[campo] = valor
-          
-          let listUpdated = await fs.promises.writeFile(this.PATH, JSON.stringify(products))
-
-          return  listUpdated
-        
-        }else{
-
-            productToUpdate[campo] = valor
-
-            let listUpdated = await fs.promises.writeFile(this.PATH, JSON.stringify(products))
-
-            return listUpdated
             
+            if (productToUpdateKeys.includes(campo)){
+                
+                productToUpdate[campo] = valor
+
+                let listUpdated = await fs.promises.writeFile(this.PATH, JSON.stringify(this.products))
+                               
+                return  listUpdated
+            
+            }else{
+
+                productToUpdate[campo] = valor
+
+                let listUpdated = await fs.promises.writeFile(this.PATH, JSON.stringify(this.products))
+
+                return listUpdated
+                
+            }
+        }else {
+            console.log(error,"El id ingresado no existe");
         }
     }
-
+    
     deleteProduct = async(id) => {
-        let data = await fs.promises.readFile(this.PATH, "utf-8")
-        
-        let products = JSON.parse(data)
+        let isIdValid = this.products.some(prod => prod.id === id)
 
-            let productToDelete = products.find((prod) => prod.id === id)
-        
-            let productToDeleteIndex = await products.findIndex((prod) => prod.id === id)
-                
-            let newProducts = products.splice((productToDeleteIndex),1)
-                
-            let listUpdated = fs.promises.writeFile(this.PATH, JSON.stringify(products, null))   
-                
-            return products
+        if (isIdValid) {
+            
+            let data = await fs.promises.readFile(this.PATH, "utf-8")
+            
+            let products = JSON.parse(data)
+    
+                let productToDelete = products.find((prod) => prod.id === id)
+            
+                let productToDeleteIndex = await products.findIndex((prod) => prod.id === id)
+                    
+                let newProducts = products.splice((productToDeleteIndex),1)
+                    
+                let listUpdated = fs.promises.writeFile(this.PATH, JSON.stringify(products, null))   
+                    
+                return products
+        }else {
+            console.log(error,`El id ${id} no existe en el documento de productos`);
+        }
         
     }
 }
@@ -115,10 +129,8 @@ const ProductHandler = new ProductManager(PATH)
     await ProductHandler.addProduct("Teclado", "teclado mecanico bla bla", 18500, "miteclado.com/mecanico", 220, 25)
     await ProductHandler.addProduct("mouse", "mouse optico hjsdhjhasd", 15000, "mousesjsjjs.com/mouse", 221, 85)
     await ProductHandler.addProduct("cableHDMI", "clableBla-bla", 3000, "mousesjsjjs.com/mouse", 252, 15)
-    //await ProductHandler.addProduct("cableHDMI", "clableBla-bla", 3000, "mousesjsjjs.com/mouse", 256, 15)
 
-    
-    //console.log(await ProductHandler.getProductById())
+    //console.log(await ProductHandler.getProductById(4)) 
     await ProductHandler.updateProduct(2,"title", "Teclado Inalambrico")
     await ProductHandler.deleteProduct(3)
     console.log(await ProductHandler.getProducts())
