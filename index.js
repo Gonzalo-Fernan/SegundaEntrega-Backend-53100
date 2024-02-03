@@ -1,12 +1,10 @@
-import { error, log } from "console";
 import fs from "fs";
-
 
 class ProductManager {
   
-    constructor (){
-        this.products = []
-        this.PATH = "./products.json"
+    constructor (PATH, products = []){
+        this.products = products
+        this.PATH = PATH
         
     }
     
@@ -27,7 +25,7 @@ class ProductManager {
                 this.products.push(product)
                 await fs.promises.writeFile(this.PATH, JSON.stringify(this.products, null))
         
-                }else console.log("operacion fallida el produto a agregar tiene un code ya existente, debe generar uno nuevo") 
+                }else console.log(`operacion fallida el produto ${title} tiene un code ya existente, debe generar uno nuevo`) 
     
         }else{
             console.log("error, Debes ingresar todos los campos del productos");
@@ -82,7 +80,13 @@ class ProductManager {
           return  listUpdated
         
         }else{
-            console.log(error, "no se pudo actualizar en producto");
+
+            productToUpdate[campo] = valor
+
+            let listUpdated = await fs.promises.writeFile(this.PATH, JSON.stringify(products))
+
+            return listUpdated
+            
         }
     }
 
@@ -91,28 +95,31 @@ class ProductManager {
         
         let products = JSON.parse(data)
 
-        let productToDelete = products.find((prod) => prod.id === id)
+            let productToDelete = products.find((prod) => prod.id === id)
         
-        let productToDeleteIndex = await products.findIndex((prod) => prod.id === id)
-
-        let newProducts = products.splice((productToDeleteIndex),1) 
-
-        let listUpdated = fs.promises.writeFile(this.PATH, JSON.stringify(products, null))
-       
-       return products
+            let productToDeleteIndex = await products.findIndex((prod) => prod.id === id)
+                
+            let newProducts = products.splice((productToDeleteIndex),1)
+                
+            let listUpdated = fs.promises.writeFile(this.PATH, JSON.stringify(products, null))   
+                
+            return products
+        
     }
 }
 
-const ProductHandler = new ProductManager()
+const PATH = "./products.json"
+const ProductHandler = new ProductManager(PATH)
 
     await ProductHandler.addProduct("Monitor", "Monitor Samsung 27 pulgadas", 200000, "samsung.com/monitores", 251, 12)
     await ProductHandler.addProduct("Teclado", "teclado mecanico bla bla", 18500, "miteclado.com/mecanico", 220, 25)
     await ProductHandler.addProduct("mouse", "mouse optico hjsdhjhasd", 15000, "mousesjsjjs.com/mouse", 221, 85)
-    await ProductHandler.addProduct("cableHDMI", "clableBla-bla", 3000, "mousesjsjjs.com/mouse", 285, 15)
-    
+    await ProductHandler.addProduct("cableHDMI", "clableBla-bla", 3000, "mousesjsjjs.com/mouse", 252, 15)
+    //await ProductHandler.addProduct("cableHDMI", "clableBla-bla", 3000, "mousesjsjjs.com/mouse", 256, 15)
+
     
     //console.log(await ProductHandler.getProductById())
-    await ProductHandler.updateProduct(3,"title", "smartwatch")
+    await ProductHandler.updateProduct(2,"title", "Teclado Inalambrico")
     await ProductHandler.deleteProduct(3)
     console.log(await ProductHandler.getProducts())
 
